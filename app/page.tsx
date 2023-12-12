@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button'
 function page() {
   return (
     <div>
-      page
       <Button>Click me</Button>
     </div>
   )
