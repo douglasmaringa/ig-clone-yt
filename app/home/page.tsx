@@ -19,7 +19,7 @@ function page() {
           </div>
 
           <div className='w-0 hidden lg:block lg:w-3/12 '>
-           {/*suggestions*/}
+           {/*suggestions for who to follow*/}
           </div>
            
         </div>
