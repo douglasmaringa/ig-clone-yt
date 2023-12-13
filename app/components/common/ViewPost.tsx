@@ -29,6 +29,7 @@ interface Post {
   mediaUrl: string;
   likes: number;
   comments: number;
+  caption: string;
   userId: string;
   timestamp: any; 
 }
@@ -108,6 +109,7 @@ function ViewPost({ open, setOpen, post,user }: Props) {
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if(!comments) return;
+    if(!post?.id) return;
 
     const comment: Comment = {
       postId: post?.id || '',
@@ -119,6 +121,9 @@ function ViewPost({ open, setOpen, post,user }: Props) {
     };
     try {
         const docRef = await addDoc(collection(firestore, 'comments'), comment);
+        await updateDoc(doc(firestore, 'posts',  post?.id), {
+          comments: increment(1),
+        });
         toast.success('comment posted successfully!');
         setComments('');
     } catch (error) {
@@ -130,6 +135,8 @@ function ViewPost({ open, setOpen, post,user }: Props) {
 
   //like post
   const like = async () => {
+    if(!post?.id) return;
+    
     const likesQuery = query(
       collection(firestore, 'likes'),
       where('postId', '==', post?.id),
@@ -138,13 +145,13 @@ function ViewPost({ open, setOpen, post,user }: Props) {
     // Check if the user has liked the post
     const likeSnapshot = await getDocs(likesQuery);
     const hasLiked = !likeSnapshot.empty;
-    const userId: string = user?.id || '';
 
     if (hasLiked) {
       // If the user has liked the post, delete the like
       const likeDoc = likeSnapshot.docs[0];
       await deleteDoc(doc(firestore, 'likes', likeDoc.id));
-      await updateDoc(doc(firestore, 'users',  userId), {
+     
+      await updateDoc(doc(firestore, 'posts',  post?.id), {
         likes: increment(-1),
       });
       toast.success('Post unliked successfully!');
@@ -157,7 +164,7 @@ function ViewPost({ open, setOpen, post,user }: Props) {
   
       try {
         await addDoc(collection(firestore, 'likes'), newLike);
-        await updateDoc(doc(firestore, 'users',  userId), {
+        await updateDoc(doc(firestore, 'posts',  post?.id), {
           likes:increment(1),
         });
        
@@ -203,8 +210,8 @@ function ViewPost({ open, setOpen, post,user }: Props) {
       {/* Right section (50% width) */}
       <div className="w-2/2 lg:w-1/2 p-4 flex flex-col justify-between bg-white text-black">
         {/* Post details */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
+        <div className=''>
+          <div className="flex items-center justify-between mb-4 border-b border-gray-300 pb-4">
             <div className="flex items-center space-x-2">
             <div className='w-1/3'>
               <Avatar className='w-10 h-10'>
@@ -221,6 +228,14 @@ function ViewPost({ open, setOpen, post,user }: Props) {
 
           {/* Comments */}
           <div className="overflow-auto max-h-40 xl:max-h-96">
+               <div className="flex items-center space-x-2 mb-2">
+                  <Avatar className='w-10 h-10'>
+                    <AvatarImage src={user?.profilePic} />
+                    <AvatarFallback>CN.</AvatarFallback>
+                  </Avatar>
+                  <p className="text-sm font-semibold">{user?.username}</p>
+                  <p className="text-sm">{post?.caption}</p>
+                </div>
             {
               commentsDb.map((comment) => (
                 <div key={comment.id} className="flex items-center space-x-2 mb-2">
