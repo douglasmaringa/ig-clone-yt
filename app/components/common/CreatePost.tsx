@@ -40,8 +40,6 @@ function CreatePost({open,setOpen}:Props) {
     return () => unsubscribe();
   }, [auth]); 
 
-  console.log(userId);
-
   const [fileData, setFileData] = useState<FileData>({
     file: null,
     caption: '',
@@ -104,6 +102,7 @@ function CreatePost({open,setOpen}:Props) {
               likes:0,
               comments:0,
               timestamp:serverTimestamp(),
+              type:fileData.type,
             });
             toast.success('Post created successfully!');
             setOpen(false);
