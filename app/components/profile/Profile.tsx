@@ -17,6 +17,7 @@ interface Post {
   id: string;
   type: 'image' | 'video';
   mediaUrl: string;
+  caption: string;
   likes: number;
   comments: number;
   userId: string;
@@ -27,7 +28,7 @@ interface Post {
 
 
 function Profile() {
-  const imageUrls = ['/1.jpg', '/2.jpg', '/2.jpg', '/2.jpg', '/1.jpg', '/2.jpg'];
+  
   const auth = getAuth(app);
   const [user, setUser] = useState<any>(null);
   const [posts, setPosts] = useState<Post[]>([]);

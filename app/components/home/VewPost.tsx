@@ -54,7 +54,7 @@ function ViewPost({ open, setOpen, post,user }: Props) {
   const [commentsDb, setCommentsDb] = useState<Comment[]>([]);
   const [hasLiked, setHasLiked] = useState<boolean>(false);
   const [likes, setLikes] = useState<number>(post?.likes || 0);
-  const [userDb, setUser] = useState<string>("");
+  const [loggedInUser, setLoggedInUser] = useState<any>([]);
   const auth = getAuth(app);
 
   const convertTimestampToTimeAgo = (timestamp: any) => {
@@ -71,9 +71,13 @@ function ViewPost({ open, setOpen, post,user }: Props) {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        setUser(user?.uid);
+        //get user from db
+        const docRef = doc(firestore, 'users', user.uid);
+        const docSnap = await getDoc(docRef);
+        const data = ({ id: docSnap.id, ...docSnap.data()});
+        setLoggedInUser(data);
       } else {
-        setUser("");
+        setLoggedInUser(null);
       }
     });
     return () => unsubscribe();
@@ -82,7 +86,7 @@ function ViewPost({ open, setOpen, post,user }: Props) {
   //get comments
   useEffect(() => {
     if(!post?.id) return;
-    const tasksQuery = query(collection(firestore, 'comments'),where('postId', '==',post?.id ),orderBy('timestamp', 'desc'));
+    const tasksQuery = query(collection(firestore, 'comments'),where('postId', '==',post?.id ),orderBy('timestamp', 'asc'));
     const unsubscribe = onSnapshot(tasksQuery, (snapshot) => {
       const commentsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Comment));
       setCommentsDb(commentsData);
@@ -94,17 +98,18 @@ function ViewPost({ open, setOpen, post,user }: Props) {
   //get if you have liked likes
   useEffect(() => {
     if(!post?.id) return;
+    if(!loggedInUser?.userId) return;
     const likesQuery = query(
       collection(firestore, 'likes'),
       where('postId', '==', post?.id),
-      where('userId', '==', user?.userId)
+      where('userId', '==', loggedInUser?.userId)
     );
     const unsubscribe = onSnapshot(likesQuery, (snapshot) => {
       const hasLiked = !snapshot.empty;
       setHasLiked(hasLiked);
     });
     return () => unsubscribe();
-  }, [post?.id,user?.userId]);
+  }, [post?.id,loggedInUser?.userId]);
 
   //get like count
   useEffect(() => {
@@ -128,9 +133,9 @@ function ViewPost({ open, setOpen, post,user }: Props) {
 
     const comment: Comment = {
       postId: post?.id || '',
-      userId: user?.userId || '',
-      username: user?.username || '',
-      profilePic: user?.profilePic || '',
+      userId: loggedInUser?.userId || '',
+      username: loggedInUser?.username || '',
+      profilePic: loggedInUser?.profilePic || '',
       timestamp: serverTimestamp(),
       text: comments,
     };
@@ -155,7 +160,7 @@ function ViewPost({ open, setOpen, post,user }: Props) {
     const likesQuery = query(
       collection(firestore, 'likes'),
       where('postId', '==', post?.id),
-      where('userId', '==', user?.userId)
+      where('userId', '==', loggedInUser?.userId)
     );
     // Check if the user has liked the post
     const likeSnapshot = await getDocs(likesQuery);
@@ -239,7 +244,7 @@ function ViewPost({ open, setOpen, post,user }: Props) {
             </div>
             <div className="flex items-center space-x-2">
               {
-                userDb === post?.userId && (
+                loggedInUser?.userId === post?.userId && (
                   <FaTrash onClick={()=>{removePost()}} className="text-red-500 hover:cursor-pointer hover:text-red-800" />
                 )
               }
