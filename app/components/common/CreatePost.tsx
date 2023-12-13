@@ -123,7 +123,7 @@ function CreatePost({open,setOpen}:Props) {
         }
       );
     } catch (error) {
-      console.error('Error creating post:', error);
+      //console.error('Error creating post:', error);
       toast.error('Failed to create post. Please try again.');
       setLoading(false);
     }
