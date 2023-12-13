@@ -1,4 +1,5 @@
 "use client";
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'
@@ -9,15 +10,24 @@ import { BiMoviePlay,BiSolidMoviePlay } from "react-icons/bi";
 import { RiMessengerLine,RiMessengerFill } from "react-icons/ri";
 import { FaRegHeart,FaHeart } from "react-icons/fa";
 import { SiAddthis } from "react-icons/si";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle,DialogTrigger} from "@/components/ui/dialog"
+import { set } from 'date-fns';
+import CreatePost from './CreatePost';
+  
 
 const Sidebar = () => {
+    const [open, setOpen] = useState<boolean>(false);
     const pathname = usePathname()
 
   // Function to check if the given path is the current path
   const isCurrentPath = (path:string) => {
     return pathname.startsWith(path);
   };
+
+  const create = () => {
+    setOpen(true)
+  }
 
 
   return (
@@ -112,7 +122,7 @@ const Sidebar = () => {
 
             {/*Create */}
             <div>
-                <Link className={`flex space-x-2 flex-row  items-center`} href="/create">
+                <button onClick={create} className={`flex space-x-2 flex-row  items-center`}>
                 {
                     isCurrentPath("/create") ?(<>
                     <SiAddthis className={`h-6 w-6`}/>
@@ -121,7 +131,7 @@ const Sidebar = () => {
                     </>)
                  }
                 <h1 className="text-lg hidden lg:block">Create</h1>
-               </Link>
+               </button>
             </div>
 
              {/*Profile */}
@@ -144,7 +154,15 @@ const Sidebar = () => {
                </Link>
             </div>
             
-            
+            <Dialog open={open} onOpenChange={setOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                    <DialogTitle className='text-center'>Create New Post</DialogTitle>
+                     <CreatePost open={open} setOpen={setOpen}/>
+                    </DialogHeader>
+                </DialogContent>
+            </Dialog>
+
           </div>  
     </aside>
   );
