@@ -195,7 +195,7 @@ function ViewPost({ open, setOpen, post,user }: Props) {
                 <div key={comment.id} className="flex items-center space-x-2 mb-2">
                   <Avatar className='w-10 h-10'>
                     <AvatarImage src={comment?.profilePic} />
-                    <AvatarFallback>CN</AvatarFallback>
+                    <AvatarFallback>CN.</AvatarFallback>
                   </Avatar>
                   <p className="text-sm font-semibold">{comment?.username}</p>
                   <p className="text-sm">{comment?.text}</p>
