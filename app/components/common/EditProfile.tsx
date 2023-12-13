@@ -41,6 +41,7 @@ function EditProfile({ open, setOpen, user,reload,setReload }: Props) {
     }
   };
 
+  //upload image to firebase storage
   const handleSubmit = async () => {
     setLoading(true);
     let downloadURL = formData.profilePic; // Default to the existing profile picture
