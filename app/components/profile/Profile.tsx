@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { FaHeart, FaComment } from 'react-icons/fa';
 
 function Profile() {
-  const imageUrls = ['/1.jpg', '/2.jpg', '/1.jpg', '/2.jpg', '/1.jpg', '/2.jpg'];
+  const imageUrls = ['/1.jpg', '/2.jpg', '/2.jpg', '/2.jpg', '/1.jpg', '/2.jpg'];
 
   return (
     <div className='max-w-4xl mx-auto p-10'>
