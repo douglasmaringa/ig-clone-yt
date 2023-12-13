@@ -29,6 +29,7 @@ function CreatePost({open,setOpen}:Props) {
   const [loading, setLoading] = useState<boolean>(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
 
+  //get user from db
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
@@ -72,6 +73,7 @@ function CreatePost({open,setOpen}:Props) {
     setFileData({ ...fileData, caption: event.target.value });
   };
 
+  //upload post
   const handleNextClick = async () => {
     if (!fileData.file) return toast.error('Please select a file');
     if (!fileData.caption) return toast.error('Please enter a caption');
@@ -165,8 +167,8 @@ function CreatePost({open,setOpen}:Props) {
         </div>
       )}
 
-      {fileData.file && (
-        <div className='flex mt-4 justify-between'>
+        {fileData.file && (
+           <div className='flex mt-4 justify-between'>
             {loading && (
               <div className="flex items-center w-80">
                 <Progress value={uploadProgress} />

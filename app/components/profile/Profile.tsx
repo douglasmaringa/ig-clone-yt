@@ -9,7 +9,7 @@ import { firestore, app } from '@/firebase';
 import { collection, onSnapshot, orderBy, query,where,doc,getDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle,DialogTrigger} from "@/components/ui/dialog"
+import {Dialog,DialogContent,DialogHeader} from "@/components/ui/dialog"
 import ViewPost from '../common/ViewPost';
 import EditProfile from '../common/EditProfile';
 

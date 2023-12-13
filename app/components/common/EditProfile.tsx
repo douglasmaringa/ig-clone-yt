@@ -6,7 +6,6 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/
 import {  doc, updateDoc } from 'firebase/firestore';
 import { firestore } from '@/firebase';
 import { toast } from 'react-hot-toast';
-import { set } from 'date-fns';
 
 interface User {
     userId: string;
@@ -14,7 +13,6 @@ interface User {
   bio: string;
   profilePic: string;
 }
-
 
 interface Props {
   open: boolean;

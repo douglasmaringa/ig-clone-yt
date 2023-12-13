@@ -2,9 +2,10 @@ import React,{FormEvent,useEffect,useState} from 'react';
 import { FaTrash,FaHeart } from "react-icons/fa";
 import { CiHeart } from "react-icons/ci";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { where,onSnapshot,query,orderBy,addDoc,collection,serverTimestamp,getDocs,deleteDoc,doc,updateDoc,FieldValue,increment,setDoc} from "firebase/firestore";
+import { where,onSnapshot,query,orderBy,addDoc,collection,serverTimestamp,getDocs,deleteDoc,doc,updateDoc,increment} from "firebase/firestore";
 import { toast } from 'react-hot-toast';
 import { firestore } from '@/firebase';
+import moment from 'moment';
 
 interface Comment {
   id?: string;
@@ -29,8 +30,7 @@ interface Post {
   likes: number;
   comments: number;
   userId: string;
-  timestamp: any; // Update the type based on your data structure
-  // Add other properties as needed
+  timestamp: any; 
 }
 
 interface User {
@@ -51,12 +51,22 @@ function ViewPost({ open, setOpen, post,user }: Props) {
   const[comments,setComments] = React.useState<string>("")
   const [commentsDb, setCommentsDb] = useState<Comment[]>([]);
   const [hasLiked, setHasLiked] = useState<boolean>(false);
+  const [likes, setLikes] = useState<number>(post?.likes || 0);
 
+  const convertTimestampToTimeAgo = (timestamp: any) => {
+    if (!timestamp || !timestamp.toDate) {
+      return 'Invalid Timestamp';
+    }
+    const date = timestamp.toDate(); 
+    const now = new Date(); 
+    const diffInMilliseconds = now.getTime() - date.getTime();
+    return moment.duration(diffInMilliseconds).humanize();
+  };
+  
+  //get comments
   useEffect(() => {
     if(!post?.id) return;
-  
     const tasksQuery = query(collection(firestore, 'comments'),where('postId', '==',post?.id ),orderBy('timestamp', 'desc'));
-    
     const unsubscribe = onSnapshot(tasksQuery, (snapshot) => {
       const commentsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Comment));
       setCommentsDb(commentsData);
@@ -64,15 +74,15 @@ function ViewPost({ open, setOpen, post,user }: Props) {
     return () => unsubscribe();
   }, [post?.id]);
 
+
+  //get if you have liked likes
   useEffect(() => {
     if(!post?.id) return;
-  
     const likesQuery = query(
       collection(firestore, 'likes'),
       where('postId', '==', post?.id),
       where('userId', '==', user?.userId)
     );
-  
     const unsubscribe = onSnapshot(likesQuery, (snapshot) => {
       const hasLiked = !snapshot.empty;
       setHasLiked(hasLiked);
@@ -80,9 +90,21 @@ function ViewPost({ open, setOpen, post,user }: Props) {
     return () => unsubscribe();
   }, [post?.id,user?.userId]);
 
- 
-  
+  //get like count
+  useEffect(() => {
+    if(!post?.id) return;
+    const likesQuery = query(
+      collection(firestore, 'likes'),
+      where('postId', '==', post?.id)
+    );
+    const unsubscribe = onSnapshot(likesQuery, (snapshot) => {
+      const likesCount = snapshot.size;
+      setLikes(likesCount);
+    });
+    return () => unsubscribe();
+  }, [post?.id,user?.userId]);
 
+  //submit comment
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if(!comments) return;
@@ -95,7 +117,6 @@ function ViewPost({ open, setOpen, post,user }: Props) {
       timestamp: serverTimestamp(),
       text: comments,
     };
-
     try {
         const docRef = await addDoc(collection(firestore, 'comments'), comment);
         toast.success('comment posted successfully!');
@@ -107,21 +128,18 @@ function ViewPost({ open, setOpen, post,user }: Props) {
     }
   };
 
-
+  //like post
   const like = async () => {
-  
     const likesQuery = query(
       collection(firestore, 'likes'),
       where('postId', '==', post?.id),
       where('userId', '==', user?.userId)
     );
-  
     // Check if the user has liked the post
     const likeSnapshot = await getDocs(likesQuery);
     const hasLiked = !likeSnapshot.empty;
     const userId: string = user?.id || '';
-     
-    console.log(userId)
+
     if (hasLiked) {
       // If the user has liked the post, delete the like
       const likeDoc = likeSnapshot.docs[0];
@@ -142,6 +160,7 @@ function ViewPost({ open, setOpen, post,user }: Props) {
         await updateDoc(doc(firestore, 'users',  userId), {
           likes:increment(1),
         });
+       
         toast.success('Post liked successfully!');
       } catch (error) {
         console.error('Error liking post', error);
@@ -149,6 +168,18 @@ function ViewPost({ open, setOpen, post,user }: Props) {
       }
     }
   };
+
+  const removePost = async () => {
+    const postId = post?.id || '';
+    try {
+      await deleteDoc(doc(firestore, 'posts', postId));
+      toast.success('Post deleted successfully!');
+      setOpen(false);
+    } catch (error) {
+      console.error('Error deleting post', error);
+      toast.error('Error deleting post');
+    }
+  }
 
   return (
     <div className="lg:flex items-stretch h-full">
@@ -184,7 +215,7 @@ function ViewPost({ open, setOpen, post,user }: Props) {
               <p className="text-sm font-semibold">{user?.username}</p>
             </div>
             <div className="flex items-center space-x-2">
-            <FaTrash  className="text-red-500 hover:cursor-pointer hover:text-red-800" />
+            <FaTrash onClick={()=>{removePost()}} className="text-red-500 hover:cursor-pointer hover:text-red-800" />
             </div>
           </div>
 
@@ -218,8 +249,8 @@ function ViewPost({ open, setOpen, post,user }: Props) {
          
           </div>
           <div className='flex flex-col'>
-          <p className="text-sm font-semibold">206 Likes</p>
-          <p className="text-xs ">1 hour ago</p>
+          <p className="text-sm font-semibold">{likes} Likes</p>
+          <p className="text-xs ">{convertTimestampToTimeAgo(post?.timestamp)} ago</p>
           </div>
           <form onSubmit={submit} className='flex items-center space-x-2 mt-4'>
           <input
