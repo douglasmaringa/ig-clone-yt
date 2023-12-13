@@ -43,20 +43,25 @@ function EditProfile({ open, setOpen, user,reload,setReload }: Props) {
 
   const handleSubmit = async () => {
     setLoading(true);
-    const storage = getStorage();
-    const storageRef = ref(storage, `profile_images/${file?.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file? file : new Blob());
+    let downloadURL = formData.profilePic; // Default to the existing profile picture
 
     try {
+      if (file) {
+      const storage = getStorage();
+     
+    
+      const storageRef = ref(storage, `profile_images/${file?.name}`);
+      const uploadTask = uploadBytesResumable(storageRef, file? file : new Blob());
       // Wait for the image to be uploaded
       const snapshot = await uploadTask;
-      const downloadURL = await getDownloadURL(snapshot.ref);
-
+      
+          downloadURL = await getDownloadURL(snapshot.ref);
+      }
       // Update the user data in Firestore with the new photoUrl
       await updateDoc(doc(firestore, 'users', user.userId), {
         name: formData.name,
         bio: formData.bio,
-        profilePic: downloadURL,
+        profilePic: downloadURL? downloadURL : formData.profilePic,
       });
       setLoading(false);
       toast.success(`Image uploaded and user updated successfully`);
