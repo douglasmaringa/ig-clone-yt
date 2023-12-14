@@ -11,7 +11,7 @@ import { RiMessengerLine,RiMessengerFill } from "react-icons/ri";
 import { FaRegHeart,FaHeart } from "react-icons/fa";
 import { SiAddthis } from "react-icons/si";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle,DialogTrigger} from "@/components/ui/dialog"
+import {Dialog,DialogContent,DialogHeader,DialogTitle} from "@/components/ui/dialog"
 import { doc,getDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { firestore, app } from '@/firebase';
@@ -82,33 +82,7 @@ const Sidebar = () => {
                </Link>
             </div>
 
-            {/* Explore */}
-            <div>
-                <Link className={`flex space-x-2 flex-row  items-center`} href="/explore">
-                {
-                    isCurrentPath("/explore") ?(<>
-                    <MdExplore className={`h-6 w-6`}/>
-                    </>):(<>
-                    <MdOutlineExplore className={`h-6 w-6`}/>
-                    </>)
-                 }
-                <h1 className="text-lg hidden lg:block">Explore</h1>
-               </Link>
-            </div>
-
-            {/* Reels */}
-            <div>
-                <Link className={`flex space-x-2 flex-row  items-center`} href="/reels">
-                {
-                    isCurrentPath("/reels") ?(<>
-                    <BiSolidMoviePlay className={`h-6 w-6`}/>
-                    </>):(<>
-                    <BiMoviePlay className={`h-6 w-6 rounded-md`}/>
-                    </>)
-                 }
-                <h1 className="text-lg hidden lg:block">Reels</h1>
-               </Link>
-            </div>
+            
 
             {/* Messages */}
             <div>
@@ -124,19 +98,6 @@ const Sidebar = () => {
                </Link>
             </div>
 
-            {/*Notifications */}
-            <div>
-                <Link className={`flex space-x-2 flex-row  items-center`} href="/notifications">
-                {
-                    isCurrentPath("/notifications") ?(<>
-                    <FaHeart className={`h-6 w-6`}/>
-                    </>):(<>
-                    <FaRegHeart className={`h-6 w-6 rounded-md`}/>
-                    </>)
-                 }
-                <h1 className="text-lg hidden lg:block">Notifications</h1>
-               </Link>
-            </div>
 
             {/*Create */}
             <div>
