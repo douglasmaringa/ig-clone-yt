@@ -87,7 +87,7 @@ const Sidebar = () => {
 
             {/* Messages */}
             <div>
-                <Link className={`flex space-x-2 flex-row  items-center`} href="/messages">
+                <button onClick={()=>{toast.success("messages coming in future")}} className={`flex space-x-2 flex-row  items-center`}>
                 {
                     isCurrentPath("/messages") ?(<>
                     <RiMessengerFill className={`h-6 w-6`}/>
@@ -96,7 +96,7 @@ const Sidebar = () => {
                     </>)
                  }
                 <h1 className="text-lg hidden lg:block">Messages</h1>
-               </Link>
+               </button>
             </div>
 
             {/*Notifications */}

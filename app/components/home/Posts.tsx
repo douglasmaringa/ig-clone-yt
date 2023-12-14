@@ -33,6 +33,7 @@ function Posts({reload,setReload}:Props) {
   const [selectedUser, setSelectedUser] = useState<any>();
   const [followingPosts, setFollowingPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [reloadPosts, setReloadPosts] = useState<boolean>(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -50,15 +51,12 @@ function Posts({reload,setReload}:Props) {
 
 
   useEffect(() => {
-    const fetchFollowingPosts = async () => {
-      if (!user) return;
+    if (!user) return;
 
-      const currentUserId = user.userId;
+    const currentUserId = user.userId;
+    const currentUserDocRef = doc(firestore, 'users', currentUserId);
+    const unsubscribe = onSnapshot(currentUserDocRef, (currentUserDocSnapshot) => {
       setLoading(true);
-
-      // Fetch the list of users the current user is following
-      const currentUserDocRef = doc(firestore, 'users', currentUserId);
-      const currentUserDocSnapshot = await getDoc(currentUserDocRef);
 
       if (!currentUserDocSnapshot.exists()) {
         setLoading(false);
@@ -74,28 +72,34 @@ function Posts({reload,setReload}:Props) {
         return;
       }
 
-      // Fetch posts from users the current user is following
       const followingPostsQuery = query(
         collection(firestore, 'posts'),
         where('userId', 'in', followingUsers),
         orderBy('timestamp', 'desc')
       );
 
-      const postsSnapshot = await getDocs(followingPostsQuery);
+      const unsubscribePosts = onSnapshot(followingPostsQuery, (postsSnapshot) => {
+        const postsData = postsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Post));
+        setFollowingPosts(postsData);
+        setLoading(false);
+        setReloadPosts(false);
+      });
 
-      const postsData = postsSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Post));
-      setFollowingPosts(postsData);
-      setLoading(false);
-    };
-
-    
-    fetchFollowingPosts();
+      return () => {
+        // Cleanup logic for posts listener
+        unsubscribePosts();
+        setLoading(false);
+      };
+    });
 
     return () => {
-      // Cleanup logic, if needed
+      // Cleanup logic for user listener
       setLoading(false);
     };
   }, [user,reload]);
+
+ 
+  console.log(followingPosts);
 
   
   return (
@@ -106,7 +110,7 @@ function Posts({reload,setReload}:Props) {
                     <p>Loading...</p>
                 ) : (
                   followingPosts?.map((post) => (
-                        <PostCard key={post.id} post={post} selectedPost={selectedPost} setSelectedPost={setSelectedPost} selectedUser={selectedUser} setSelectedUser={setSelectedUser} setOpen={setOpen}/>
+                        <PostCard key={post.id} post={post} selectedPost={selectedPost} setSelectedPost={setSelectedPost} selectedUser={selectedUser} setSelectedUser={setSelectedUser} setOpen={setOpen} reloadPosts={reloadPosts} setReloadPosts={setReloadPosts}/>
                     ))
                 )
             }

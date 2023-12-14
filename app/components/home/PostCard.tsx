@@ -43,9 +43,11 @@ interface Props {
     selectedUser?:User
     setSelectedUser?: React.Dispatch<React.SetStateAction<any>>
     setOpen?: React.Dispatch<React.SetStateAction<boolean>>
+    reloadPosts:boolean
+    setReloadPosts: React.Dispatch<React.SetStateAction<boolean>>
 }
 
-function PostCard({post,setOpen,selectedPost,selectedUser,setSelectedPost,setSelectedUser}:Props) {
+function PostCard({post,setOpen,selectedPost,selectedUser,setSelectedPost,setSelectedUser,reloadPosts,setReloadPosts}:Props) {
     const auth = getAuth(app);
     const [postOwner, setPostOwner] = useState<any>(null);
     const [loggedInUserId, setLoggedInUserId] = useState<string>("");
@@ -123,6 +125,7 @@ function PostCard({post,setOpen,selectedPost,selectedUser,setSelectedPost,setSel
         });
        
         toast.success('Post liked successfully!');
+        setReloadPosts(true);
       } catch (error) {
         console.error('Error liking post', error);
         toast.error('Error liking post');
