@@ -7,6 +7,7 @@ import { collection, onSnapshot,addDoc, increment, query,where,doc,getDoc,getDoc
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { toast } from 'react-hot-toast';
 import moment from 'moment';
+import { useRouter } from 'next/navigation';
 
 
 interface Post {
@@ -49,6 +50,7 @@ function PostCard({post,setOpen,selectedPost,selectedUser,setSelectedPost,setSel
     const [postOwner, setPostOwner] = useState<any>(null);
     const [loggedInUserId, setLoggedInUserId] = useState<string>("");
     const [hasLiked, setHasLiked] = useState<boolean>(false);
+    const router = useRouter();
     
 
     useEffect(() => {
@@ -158,6 +160,10 @@ function PostCard({post,setOpen,selectedPost,selectedUser,setSelectedPost,setSel
       return `${days}d`;
     }
   };
+
+  const openProfile = () => {
+     router.push(`/page/${postOwner?.userId}`);
+  }
   
         
 
@@ -168,7 +174,7 @@ function PostCard({post,setOpen,selectedPost,selectedUser,setSelectedPost,setSel
             <AvatarImage className='' src={postOwner?.profilePic} />
             <AvatarFallback>CN</AvatarFallback>
           </Avatar>
-          <h1>{postOwner?.username}</h1>
+          <h1 onClick={()=>{openProfile()}} className='cursor-pointer'>{postOwner?.username}</h1>
           <p className='text-sm'>{convertTimestampToTimeAgo(post?.timestamp)}</p>
         </div>
 
@@ -199,7 +205,7 @@ function PostCard({post,setOpen,selectedPost,selectedUser,setSelectedPost,setSel
         </div>
 
         <div className='mt-2 flex space-x-2'>
-            <p className='text-sm font-semibold'>{postOwner?.username}</p>
+            <p  className='text-sm font-semibold'>{postOwner?.username}</p>
             <p className='text-sm'>{post?.caption}</p>
         </div>
 
