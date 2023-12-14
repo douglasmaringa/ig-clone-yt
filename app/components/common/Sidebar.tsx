@@ -16,6 +16,7 @@ import { doc,getDoc } from 'firebase/firestore';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { firestore, app } from '@/firebase';
 import CreatePost from './CreatePost';
+import { toast } from 'react-hot-toast';
   
 
 const Sidebar = () => {
@@ -70,7 +71,7 @@ const Sidebar = () => {
 
             {/* Search */}
             <div>
-                <Link className={`flex space-x-2 flex-row  items-center`} href="/search">
+                <button onClick={()=>{toast.success("search coming in future")}} className={`flex space-x-2 flex-row  items-center`}>
                 {
                     isCurrentPath("/search") ?(<>
                     <LuSearchCheck className={`h-6 w-6`}/>
@@ -79,7 +80,7 @@ const Sidebar = () => {
                     </>)
                  }
                 <h1 className="text-lg hidden lg:block">Search</h1>
-               </Link>
+               </button>
             </div>
 
             
@@ -98,6 +99,19 @@ const Sidebar = () => {
                </Link>
             </div>
 
+            {/*Notifications */}
+            <div>
+                <button onClick={()=>{toast.success("notifications coming in future")}} className={`flex space-x-2 flex-row  items-center`}>
+                {
+                    isCurrentPath("/notifications") ?(<>
+                    <FaHeart className={`h-6 w-6`}/>
+                    </>):(<>
+                    <FaRegHeart className={`h-6 w-6 rounded-md`}/>
+                    </>)
+                 }
+                <h1 className="text-lg hidden lg:block">Notifications</h1>
+               </button>
+            </div>
 
             {/*Create */}
             <div>
