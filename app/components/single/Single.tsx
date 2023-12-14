@@ -58,7 +58,6 @@ function Single({userId}: Props) {
     return () => unsubscribe();
   }, [auth,reload]);
 
-  //console.log(user)
 
   // Get all posts from the user
   useEffect(() => {
@@ -156,9 +155,6 @@ function Single({userId}: Props) {
     // Trigger a reload of data
     setReload((prev) => !prev);
   };
-
-  
-  
 
 
   return (

@@ -19,7 +19,6 @@ function page({params}: Props) {
 
         {/* main content */}
         <div className='w-10/12'>
-            hello
             <Single userId={userId}/>
         </div>
     </div>
