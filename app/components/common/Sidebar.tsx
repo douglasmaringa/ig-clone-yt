@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'
@@ -12,13 +12,31 @@ import { FaRegHeart,FaHeart } from "react-icons/fa";
 import { SiAddthis } from "react-icons/si";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {Dialog,DialogContent,DialogDescription,DialogHeader,DialogTitle,DialogTrigger} from "@/components/ui/dialog"
-import { set } from 'date-fns';
+import { doc,getDoc } from 'firebase/firestore';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { firestore, app } from '@/firebase';
 import CreatePost from './CreatePost';
   
 
 const Sidebar = () => {
     const [open, setOpen] = useState<boolean>(false);
+    const auth = getAuth(app);
+    const [loggedInUser, setLoggedInUser] = useState<any>([]);
     const pathname = usePathname()
+
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+          if (user) {
+            const docRef = doc(firestore, 'users', user.uid);
+            const docSnap = await getDoc(docRef);
+            const data = ({ id: docSnap.id, ...docSnap.data()});
+            setLoggedInUser(data);
+          } else {
+            setLoggedInUser([]);
+          }
+        });
+        return () => unsubscribe();
+      }, [auth]);
 
   // Function to check if the given path is the current path
   const isCurrentPath = (path:string) => {
@@ -140,12 +158,12 @@ const Sidebar = () => {
                 {
                     isCurrentPath("/profile") ?(<>
                     <Avatar className='border-2 border-black h-6 w-6'>
-                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarImage src={loggedInUser?.profilePic} />
                         <AvatarFallback>CN</AvatarFallback>
                     </Avatar>
                     </>):(<>
                         <Avatar className=' h-6 w-6'>
-                        <AvatarImage src="https://github.com/shadcn.png" />
+                        <AvatarImage src={loggedInUser?.profilePic} />
                         <AvatarFallback>CN</AvatarFallback>
                         </Avatar>
                     </>)
