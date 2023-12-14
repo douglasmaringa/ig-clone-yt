@@ -1,26 +1,24 @@
 "use client"
 import React, { useEffect, useState } from 'react';
-import Stories, { WithSeeMore, WithHeader } from 'react-insta-stories';
+import Stories, { WithHeader } from 'react-insta-stories';
 import { firestore, app } from '@/firebase';
 import { collection, query, where, getDocs, doc, getDoc } from 'firebase/firestore';
 import moment from 'moment';
 import { useRouter } from 'next/navigation';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
+import { IoMdClose } from 'react-icons/io';
 
 interface Story {
   id: string;
+  userId: string; // Add userId to Story
   url: string;
   type?: 'image' | 'video';
   duration?: number;
-  header?: {
-    heading: string;
-    subheading: string;
-    profileImage: string;
-  };
-  seeMore?: React.ReactNode;
-  seeMoreCollapsed?: React.ReactNode;
-  styles?: any; // Override the default story styles mentioned in the documentation
   preloadResource?: boolean;
+  user?: {
+    username: string;
+    profilePic: string;
+  };
 }
 
 interface Props {
@@ -38,7 +36,7 @@ function Page({ params }: Props) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState<number>(0);
 
-  //get user
+  // Get the current user
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -53,7 +51,7 @@ function Page({ params }: Props) {
     return () => unsubscribe();
   }, [auth]);
 
-//get statuses of people i follow
+  // Fetch statuses of people I follow
   useEffect(() => {
     const fetchFollowingStories = async () => {
       if (!user) return;
@@ -88,17 +86,34 @@ function Page({ params }: Props) {
 
       const storySnapshot = await getDocs(followingStoryQuery);
 
-      const storiesData = storySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        url: doc.data().mediaUrl,
-        type: doc.data().type,
-        duration: doc.data().duration,
-        header: doc.data().header,
-        preloadResource: true, // Adjust based on your needs
-        // Add other story properties as needed
-      } as Story));
+      const storiesData = await Promise.all(
+        storySnapshot.docs.map(async (docSnap) => {
+          // Fetch user details for each post
+          const userDocRef = doc(firestore, 'users', docSnap.data().userId);
+          const userDocSnapshot = await getDoc(userDocRef);
+          const userData = userDocSnapshot.data();
+          
+          return {
+            id: docSnap.id,
+            userId: docSnap.data().userId,
+            username: userData?.username || '',
+            profilePic: userData?.profilePic || '',
+            url: docSnap.data().mediaUrl,
+            type: docSnap.data().type,
+            duration: docSnap.data().duration,
+            preloadResource: true,
+            header: {
+              heading: userData?.username || '',
+              profileImage: userData?.profilePic || '',
+            },
+          } as Story;
+        
+      
+        })
+      );
 
       setFollowingStatus(storiesData);
+
       // Find the index of the story with the specified id
       const initialIndex = storiesData.findIndex((story) => story.id === id);
 
@@ -114,44 +129,62 @@ function Page({ params }: Props) {
     return () => {
       setLoading(false);
     };
-  }, [user]);
+  }, [user, id]);
 
   const goHome = () => {
     router.push('/home');
   };
 
+  console.log(followingStatus);
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <button className="absolute top-4 left-4 px-4 py-2 bg-blue-500 text-white rounded" onClick={goHome}>
-        Back to Home
-      </button>
-      {
-        loading && (
-          <div className="flex items-center justify-center w-full h-full">
-            <p className="text-2xl text-gray-500">Loading...</p>
-          </div>
-        )
-      }
-      {followingStatus.length > 0 && (
-        <div className='max-w-xl'>
-        <Stories
-          stories={followingStatus}
-          currentIndex={currentIndex}
-          onStoryStart={() => console.log('Story Started')}
-          onStoryEnd={() => console.log('Story Ended')}
-          onAllStoriesEnd={() => console.log('All Stories Ended')}
-          onNext={() => setCurrentIndex((prevIndex) => (prevIndex + 1) % followingStatus.length)}
-          onPrevious={() =>
-            setCurrentIndex((prevIndex) => (prevIndex - 1 + followingStatus.length) % followingStatus.length)
-          }
-          isPaused={false}
-          keyboardNavigation={true}
-          preloadCount={1}
-          width={'max-w-7xl'}
-          height={'100vh'}
-        />
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900">
+      {loading && (
+        <div className="flex items-center justify-center w-full h-full">
+          <p className="text-2xl text-gray-500">Loading...</p>
         </div>
       )}
+      {followingStatus.length > 0 && (
+        <div className="max-w-xl">
+          <Stories
+            stories={followingStatus}
+            currentIndex={currentIndex}
+            onStoryStart={() => console.log('Story Started')}
+            onStoryEnd={() => console.log('Story Ended')}
+            onAllStoriesEnd={() => console.log('All Stories Ended')}
+            onNext={() => setCurrentIndex((prevIndex) => (prevIndex + 1) % followingStatus.length)}
+            onPrevious={() =>
+              setCurrentIndex((prevIndex) => (prevIndex - 1 + followingStatus.length) % followingStatus.length)
+            }
+            isPaused={false}
+            keyboardNavigation={true}
+            header={({ header }: any) => {
+              const currentStory:any = followingStatus[currentIndex];
+              //console.log('Current Story:', currentStory);
+              return (
+                <div className="flex items-center justify-between px-4 py-2">
+                  <div className="flex items-center space-x-2">
+                    <img
+                      src={currentStory?.header?.profileImage || 'default-profile-image-url'}
+                      alt="Profile"
+                      className="w-8 h-8 rounded-full bg-gray-300"
+                    />
+                    <p className="text-sm font-bold text-gray-200">{currentStory?.username}</p>
+                  </div>
+                </div>
+              );
+            }}
+            preloadCount={1}
+            width={'max-w-7xl'}
+            height={'100vh'}
+          />
+       
+
+        </div>
+      )}
+       <button className="absolute top-0 right-4 px-4 py-2 text-white rounded" onClick={goHome}>
+       <IoMdClose className="w-8 h-8" />
+      </button>
       
     </div>
   );
